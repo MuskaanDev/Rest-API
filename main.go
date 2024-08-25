@@ -12,13 +12,13 @@ type PostRequest struct {
 }
 
 type PostResponse struct {
-	Status                   bool     `json:"is_success"`
+	IsSuccess                bool     `json:"is_success"`
 	UserID                   string   `json:"user_id"`
 	Email                    string   `json:"email"`
-	RollNo                   string   `json:"roll_number"`
+	RollNumber               string   `json:"roll_number"`
 	Numbers                  []string `json:"numbers"`
 	Alphabets                []string `json:"alphabets"`
-	HighestLowercaseAlphabet string   `json:"highest_lowercase_alphabet"`
+	HighestLowercaseAlphabet []string `json:"highest_lowercase_alphabet"`
 }
 
 func handlePost(w http.ResponseWriter, r *http.Request) {
@@ -31,27 +31,34 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 
 	numbers := []string{}
 	alphabets := []string{}
-	highestLowercaseAlphabet := ""
+	var highestLowercaseAlphabet string
 
 	for _, item := range req.Data {
 		if _, err := strconv.Atoi(item); err == nil {
 			numbers = append(numbers, item)
 		} else if len(item) == 1 && ((item >= "a" && item <= "z") || (item >= "A" && item <= "Z")) {
 			alphabets = append(alphabets, item)
-			if item >= "a" && item <= "z" && item > highestLowercaseAlphabet {
-				highestLowercaseAlphabet = item
+			if item >= "a" && item <= "z" {
+				if highestLowercaseAlphabet == "" || item > highestLowercaseAlphabet {
+					highestLowercaseAlphabet = item
+				}
 			}
 		}
 	}
 
+	var highestLowercaseAlphabetArray []string
+	if highestLowercaseAlphabet != "" {
+		highestLowercaseAlphabetArray = []string{highestLowercaseAlphabet}
+	}
+
 	res := PostResponse{
-		Status:                   true,
+		IsSuccess:                true,
 		UserID:                   "john_doe_17091999",
 		Email:                    "john@xyz.com",
-		RollNo:                   "ABCD123",
+		RollNumber:               "ABCD123",
 		Numbers:                  numbers,
 		Alphabets:                alphabets,
-		HighestLowercaseAlphabet: highestLowercaseAlphabet,
+		HighestLowercaseAlphabet: highestLowercaseAlphabetArray,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
