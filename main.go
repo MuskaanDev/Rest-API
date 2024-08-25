@@ -4,36 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
+	"strconv"
 )
 
 type PostRequest struct {
-	Name      string   `json:"name"`
-	DOB       string   `json:"dob"`
-	Email     string   `json:"email"`
-	RollNo    string   `json:"roll_no"`
-	Numbers   []int    `json:"numbers"`
-	Alphabets []string `json:"alphabets"`
+	Data []string `json:"data"`
 }
 
 type PostResponse struct {
-	Status          bool     `json:"is_success"`
-	UserID          string   `json:"user_id"`
-	Email           string   `json:"email"`
-	RollNo          string   `json:"roll_no"`
-	Numbers         []int    `json:"numbers"`
-	Alphabets       []string `json:"alphabets"`
-	HighestAlphabet string   `json:"highest_alphabet"`
-}
-
-func getHighestAlphabet(alphabets []string) string {
-	highest := ""
-	for _, char := range alphabets {
-		if char >= highest {
-			highest = char
-		}
-	}
-	return highest
+	Status                   bool     `json:"is_success"`
+	UserID                   string   `json:"user_id"`
+	Email                    string   `json:"email"`
+	RollNo                   string   `json:"roll_number"`
+	Numbers                  []string `json:"numbers"`
+	Alphabets                []string `json:"alphabets"`
+	HighestLowercaseAlphabet string   `json:"highest_lowercase_alphabet"`
 }
 
 func handlePost(w http.ResponseWriter, r *http.Request) {
@@ -44,17 +29,29 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := fmt.Sprintf("%s_%s", strings.ReplaceAll(strings.ToLower(req.Name), " ", "_"), req.DOB)
-	highestAlphabet := getHighestAlphabet(req.Alphabets)
+	numbers := []string{}
+	alphabets := []string{}
+	highestLowercaseAlphabet := ""
+
+	for _, item := range req.Data {
+		if _, err := strconv.Atoi(item); err == nil {
+			numbers = append(numbers, item)
+		} else if len(item) == 1 && ((item >= "a" && item <= "z") || (item >= "A" && item <= "Z")) {
+			alphabets = append(alphabets, item)
+			if item >= "a" && item <= "z" && item > highestLowercaseAlphabet {
+				highestLowercaseAlphabet = item
+			}
+		}
+	}
 
 	res := PostResponse{
-		Status:          true,
-		UserID:          userID,
-		Email:           req.Email,
-		RollNo:          req.RollNo,
-		Numbers:         req.Numbers,
-		Alphabets:       req.Alphabets,
-		HighestAlphabet: highestAlphabet,
+		Status:                   true,
+		UserID:                   "john_doe_17091999",
+		Email:                    "john@xyz.com",
+		RollNo:                   "ABCD123",
+		Numbers:                  numbers,
+		Alphabets:                alphabets,
+		HighestLowercaseAlphabet: highestLowercaseAlphabet,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
